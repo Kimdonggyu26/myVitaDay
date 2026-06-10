@@ -1,69 +1,73 @@
-# MyVitaDay MVP
+# VitaDay
 
-개인 맞춤 영양제 상담부터 조합 분석, 시중의 영양제 비교, 구매, 복용 관리까지 한 번에 제공하는 앱의 초기 설계 문서입니다.
+VitaDay is a mobile-first supplement search and comparison app prototype.
+Users can search products, compare ingredients and prices, save what they take,
+and later expand into routine management and intake tracking.
 
-## 제품 한 줄 정의
+## Product Direction
 
-사용자의 복용 중인 영양제를 분석하고 시중의 제품들을 비교하여 최적의 복용 루틴을 정리해 주고 구매와 복용 체크까지 연결하는 개인 맞춤 영양제 앱
+- Main value: supplement search, detail, comparison, and price check
+- Next layer: personal recommendations, duplicate analysis, routine, and alerts
+- Long-term vision: a trusted supplement catalog and comparison experience
 
-## MVP 목표
+## Core User Flow
 
-- 사용자가 현재 복용중인 영양제를 등록할 수 있다.
-- 등록된 영양제를 기반으로 중복 성분과 부족 가능성을 확인할 수 있다.
-- 시중에 판매중인 영양제들을 한 눈에 비교하여 사용자에게 맞는 최적의 영양제를 추천할 수 있다.
-- 하루 복용 루틴을 자동 생성하고 알림과 복용 체크를 남길 수 있다.
-- 추천 영양제와 구매 흐름을 연결할 수 있다.
+1. Search for a supplement or browse by category, goal, or brand.
+2. Check product details such as ingredients, dosage, and price.
+3. Compare multiple products side by side.
+4. Save products or register current supplements for tracking.
+5. Review routine and intake-related guidance.
 
-## 권장 기술 스택
+## Tech Stack
 
-- 앱: Expo React Native
-- API: Spring Boot
-- DB: PostgreSQL
-- 인증: JWT + Refresh Token
-- 푸시 알림: Firebase Cloud Messaging
-- AI 상담: LLM API + 내부 프롬프트 템플릿
+- Mobile: Expo + React Native
+- Backend API: Spring Boot
+- Database: PostgreSQL
+- Auth: JWT + Refresh Token
+- Notifications: Firebase Cloud Messaging
 
+## Repository Structure
 
-## 핵심 사용자 흐름
+- `apps/mobile`: Expo mobile app prototype
+- `apps/backend`: Spring Boot backend scaffold
+- `docs`: planning, screen specs, API specs, and technical docs
 
-1. 회원가입 후 현시점을 기준으로 어플 사용의 목적을 선택한다.
-2. 선택한 사용 목적에 맞게 화면을 유도한다.
-3. 성분 분석 결과에서 중복, 부족 가능성, 주의사항을 확인한다.
-4. 추천된 복용 시간대로 루틴을 저장한다.
-5. 알림을 받고 복용 체크를 누른다.
-6. 필요 시 추천 제품을 비교하고 구매한다.
+## Documents
 
-## 우선 개발 순서
+- [MVP Spec](./docs/mvp-spec.md)
+- [PRD](./docs/prd.md)
+- [Screen Spec](./docs/screen-spec.md)
+- [API Spec](./docs/api-spec.md)
+- [User Flows](./docs/user-flows.md)
+- [Feature Priority](./docs/feature-priority.md)
+- [Data Strategy](./docs/data-strategy.md)
+- [Risk Checklist](./docs/risk-checklist.md)
+- [Technical Design](./docs/technical-design.md)
+- [Schema](./docs/schema.sql)
 
-1. 인증과 기본 앱 구조
-2. 영양제 등록과 목록
-3. 성분 분석
-4. 루틴 생성
-5. 알림과 복용 체크
-6. 추천과 구매 연결
+## Current Scope
 
-## 문서
+### Phase 1
 
-- [MVP 기획](./docs/mvp-spec.md)
-- [제품 요구사항 문서 PRD](./docs/prd.md)
-- [사용자 플로우](./docs/user-flows.md)
-- [기능 우선순위](./docs/feature-priority.md)
-- [리스크 체크리스트](./docs/risk-checklist.md)
-- [기술 설계](./docs/technical-design.md)
-- [초기 DB 스키마](./docs/schema.sql)
+- Product search
+- Product detail
+- Product comparison
+- Marketplace price view
+- Saved products
+- Current supplement registration
 
-## MVP 범위에서 제외
+### Phase 2
 
-- 병원 진단 수준의 의료 판단
-- 혈액검사 기반 정밀 추천
-- 가족 계정 공유
-- 커뮤니티
-- 정기배송 정산 로직
+- Duplicate ingredient analysis
+- Deficiency guidance
+- Intake routine
+- Notifications and check tracking
 
-## 다음 추천 작업
+## Not Included Yet
 
-1. Expo React Native 앱 초기화
-2. Spring Boot API 프로젝트 생성
-3. PostgreSQL 연결과 인증 API 구현
-4. 영양제 등록 화면과 API 연결
-5. PRD 기준으로 화면 명세서와 API 명세서 세분화
+- Full real-time price crawling from every marketplace
+- Medical diagnosis features
+- Pharmacist consultation operations
+- Subscription commerce operations
+- OCR-based supplement registration
+

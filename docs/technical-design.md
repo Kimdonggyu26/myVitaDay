@@ -13,20 +13,54 @@
 
 - Spring Boot
 - Spring Security + JWT
-- JPA
+- Spring Data JPA
 - Validation
 
 ### 데이터베이스
 
 - PostgreSQL
 
+### 검색
+
+- 초기에는 PostgreSQL Full Text 또는 Trigram 검색
+- 카탈로그가 커지면 Elasticsearch 검토
+
 ### 외부 연동
 
-- Firebase Cloud Messaging for push
-- LLM API for AI 상담
-- 제품 검색용 제휴 또는 수집 데이터 소스
+- 가격 데이터 입력 소스
+- 구매 링크 제휴 소스
+- P2 이후 Firebase Cloud Messaging
 
-## 2. 도메인 모델
+## 2. 핵심 시스템 구조
+
+### Catalog
+
+- 제품, 브랜드, 카테고리, 성분, 함량 관리
+
+### Search
+
+- 제품명과 브랜드명 검색
+- 카테고리 탐색
+
+### Comparison
+
+- 제품 간 성분, 함량, 가격 비교
+
+### Offers
+
+- 판매처별 가격과 구매 링크 관리
+
+### User Library
+
+- 관심 제품 저장
+- 현재 복용 제품 등록
+
+### Analysis and Routine
+
+- P1 이후 중복 성분 분석
+- P2 이후 루틴과 알림
+
+## 3. 도메인 모델
 
 ### User
 
@@ -34,19 +68,31 @@
 - email
 - password_hash
 - nickname
-- birth_year nullable
-- gender nullable
-- health_goal
 - created_at
 
-### SupplementProduct
+### Brand
 
 - id
 - name
-- brand
-- form
+
+### ProductCategory
+
+- id
+- name
+- slug
+
+### Product
+
+- id
+- brand_id
+- category_id
+- name
+- summary
 - serving_per_day
 - caution_text
+- image_url
+- active
+- created_at
 
 ### Ingredient
 
@@ -55,27 +101,46 @@
 - unit
 - category
 
-### SupplementIngredient
+### ProductIngredient
 
 - id
-- supplement_product_id
+- product_id
 - ingredient_id
 - amount
+- display_text
 
-제품과 성분은 다대다 구조이므로 연결 테이블이 필요합니다.
+### Retailer
 
-### UserSupplement
+- id
+- name
+- site_url
+
+### ProductOffer
+
+- id
+- product_id
+- retailer_id
+- price
+- product_url
+- updated_at
+- available
+
+### UserSavedProduct
 
 - id
 - user_id
-- supplement_product_id nullable
-- custom_name nullable
-- intake_count_per_day
-- memo nullable
-- active
+- product_id
 - created_at
 
-직접 입력 제품도 받을 수 있도록 `supplement_product_id`는 nullable로 두고, 수동 입력명 `custom_name`을 허용합니다.
+### UserRegimenItem
+
+- id
+- user_id
+- product_id
+- intake_count_per_day
+- memo
+- active
+- created_at
 
 ### RoutineSlot
 
@@ -85,46 +150,11 @@
 - notify_time
 - enabled
 
-`slot_code`는 `MORNING_EMPTY`, `MORNING_AFTER_MEAL`, `LUNCH_AFTER_MEAL`, `DINNER_AFTER_MEAL`, `BEFORE_SLEEP` 같은 enum 성격으로 관리합니다.
-
 ### RoutineItem
 
 - id
 - routine_slot_id
-- user_supplement_id
-
-### IntakeLog
-
-- id
-- user_id
-- user_supplement_id
-- routine_slot_id
-- intake_date
-- taken
-- taken_at nullable
-
-## 3. 분석 로직 MVP 기준
-
-### 중복 체크
-
-- 사용자가 등록한 전체 영양제의 성분 목록을 합친다.
-- 동일 성분이 2개 이상 제품에 포함되면 중복 후보로 표시한다.
-
-### 부족 가능성
-
-- 온보딩에서 선택한 건강 목표와 등록 영양제를 비교한다.
-- 목표별 핵심 성분 템플릿과 대조해 빠진 성분군을 보여 준다.
-
-예시:
-
-- 피로 관리: 비타민 B군, 마그네슘, 비타민 C
-- 수면 관리: 마그네슘, 테아닌
-- 피부 관리: 비오틴, 비타민 C, 콜라겐
-
-### 주의사항
-
-- 카페인, 철분, 마그네슘, 오메가3 등 주요 성분에 대해 기본 복용 가이드를 룰 기반으로 제공한다.
-- 의료 판단이 필요한 조합은 일반 경고 문구만 노출한다.
+- user_regimen_item_id
 
 ## 4. API 설계 초안
 
@@ -135,81 +165,54 @@
 - `POST /auth/refresh`
 - `GET /me`
 
-### 영양제
+### 제품 카탈로그
 
-- `GET /supplements/search?query=`
-- `POST /user-supplements`
-- `GET /user-supplements`
-- `PATCH /user-supplements/{id}`
-- `DELETE /user-supplements/{id}`
+- `GET /products/search?q=`
+- `GET /products/{id}`
+- `GET /products/{id}/offers`
+- `GET /products/compare?ids=1,2`
+- `GET /categories`
+
+### 저장
+
+- `POST /saved-products`
+- `GET /saved-products`
+- `DELETE /saved-products/{id}`
+
+### 내 영양제
+
+- `POST /regimen-items`
+- `GET /regimen-items`
+- `PATCH /regimen-items/{id}`
+- `DELETE /regimen-items/{id}`
 
 ### 분석
 
-- `GET /analysis/summary`
-
-응답 예시 항목:
-
-- duplicateIngredients
-- missingCandidates
-- cautions
+- `GET /analysis/duplicates`
 
 ### 루틴
 
 - `POST /routines/generate`
 - `GET /routines`
-- `PATCH /routines/slots/{id}`
 
-### 복용 체크
+## 5. 검색 MVP 기준
 
-- `POST /intake-logs`
-- `GET /intake-logs?date=2026-04-28`
+- 제품명 우선 검색
+- 브랜드명 보조 검색
+- 정확도보다 빠른 탐색 경험을 우선
+- 인기 제품 가중치 정렬은 추후 적용 가능
 
-### 구매
+## 6. 가격 데이터 MVP 기준
 
-- `GET /products/recommendations`
-
-## 5. API 응답 예시
-
-```json
-{
-  "duplicateIngredients": [
-    {
-      "ingredientName": "Vitamin C",
-      "products": ["A 멀티비타민", "C 비타민 1000"]
-    }
-  ],
-  "missingCandidates": [
-    {
-      "ingredientName": "Magnesium",
-      "reason": "수면 관리 목표 대비 등록 제품에 포함되지 않음"
-    }
-  ],
-  "cautions": [
-    {
-      "title": "철분은 공복 복용 시 속이 불편할 수 있어요",
-      "severity": "LOW"
-    }
-  ]
-}
-```
-
-## 6. 구현 우선순위
-
-1. 인증과 세션 유지
-2. 영양제 등록과 목록
-3. 성분 데이터 모델
-4. 분석 API
-5. 루틴 생성 API
-6. 알림 스케줄링
-7. AI 상담
+- 일부 판매처만 운영
+- 가격과 링크는 별도 테이블로 관리
+- 갱신 시각을 반드시 저장
 
 ## 7. 리스크와 대응
 
-- 제품 데이터 부족
-- 초기에는 직접 입력 허용으로 해결
-- 분석 정확도 한계
-- MVP에서는 룰 기반 분석으로 범위 제한
-- 알림 이탈
-- 오늘 루틴 화면과 체크 피드백 강화
-- 의료 오해 가능성
-- 안내 문구와 제한 고지 필수
+- 데이터가 부족하면 검색 가치가 떨어진다
+- 초기에는 카테고리와 대표 제품 집중 전략으로 대응
+- 가격이 오래되면 신뢰가 깨진다
+- 갱신 시각 표시와 운영 점검 필요
+- 성분 정규화가 무너지면 비교 품질이 떨어진다
+- 표준 성분명 관리 필요

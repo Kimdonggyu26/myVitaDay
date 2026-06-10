@@ -1,0 +1,17 @@
+# Root workspace
+.DS_Store
+Thumbs.db
+
+# Mobile
+apps/mobile/node_modules/
+apps/mobile/.expo/
+apps/mobile/dist/
+apps/mobile/web-build/
+apps/mobile/*.log
+
+# Backend
+apps/backend/target/
+
+# IDE
+.idea/
+.vscode/
